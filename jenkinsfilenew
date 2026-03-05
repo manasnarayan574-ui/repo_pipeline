@@ -1,7 +1,8 @@
 pipeline{
-    agent {label 'slave2'}
+    agent none
     stages{
         stage('Build'){
+            agent {label 'slave2'}
             steps{
                 echo " this is jenkinsfile"
                 echo 'Building...'
@@ -12,6 +13,7 @@ pipeline{
             }
         }
         stage('Test'){
+            agent {label 'slave1'}
             steps{
                 echo 'Testing...'
             }
