@@ -5,6 +5,10 @@ pipeline{
             steps{
                 echo " this is jenkinsfile"
                 echo 'Building...'
+                sh '''
+                   pwd
+                   ls -l
+                '''
             }
         }
         stage('Test'){
