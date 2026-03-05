@@ -2,28 +2,28 @@ pipeline{
     agent none
     parameters{
         string(name: 'Name', defaultValue: '', description: 'Enter your name')
-        booleanParam(name: 'skiptest', defaultValue:false, description: 'skip the level of testing')
-        choice(name: 'Environment', choices: ['dev', 'qa', 'prod'], description: 'Select the environment')
-    }
-    stages{
-        stage('Build'){
-            agent {label 'slave2'}
-            steps{
-                echo "Name: ${params.Name}" 
-                echo "Environment: ${params.Environment}"
-                echo "Skip Test: ${params.skiptest}"
+        choice(name: 'Environment', choices: ['Dev', 'QA', 'Prod'], description: 'Select environment')
+        booleanParam(name: 'skip_test', defaultValue: false, description: 'Deploy to production?')
+       }
+        stages{
+            stage('Build'){
+                agent {label 'slave1'}
+                steps{
+                    echo "Name: ${params.Name}"
+                    echo "Environment: ${params.Environment}"
+                    echo "Skip Test: ${params.skip_test}"
+                }
+            }
+            stage('Test'){
+                agent {label 'slave1'}
+                steps{
+                    echo 'Testing...'
+                }
+            }
+            stage('Deploy'){
+                steps{
+                    echo 'Deploying...'
+                }
             }
         }
-        stage('Test'){
-            agent {label 'slave1'}
-            steps{
-                echo 'Testing...'
-            }
-        }
-        stage('Deploy'){
-            steps{
-                echo 'Deploying...'
-            }
-        }
-    }
 }
