@@ -1,15 +1,17 @@
 pipeline{
     agent none
+    parameters{
+        string(name: 'Name', defaultValue: '', description: 'Enter your name')
+        booleanParam(name: 'skiptest', defaultValue:false, description: 'skip the level of testing')
+        choice(name: 'Environment', choices: ['dev', 'qa', 'prod'], description: 'Select the environment')
+    }
     stages{
         stage('Build'){
             agent {label 'slave2'}
             steps{
-                echo " this is jenkinsfile"
-                echo 'Building...'
-                sh '''
-                   pwd
-                   ls -l
-                '''
+                echo "Name: ${params.Name}" 
+                echo "Environment: ${params.Environment}"
+                echo "Skip Test: ${params.skiptest}"
             }
         }
         stage('Test'){
