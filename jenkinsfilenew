@@ -1,33 +1,46 @@
 pipeline {
-        agent any
+        agent none
         stages {
             stage("parallel testing") {
                 parallel {
                     stage("windows testing") {
-                    steps {
+                        agent {label  'slave1'}
+                        steps {
                         echo "this is windows testing"
                     }
                     }
                     stage("linux testing") {
-                    steps {
+                        agent {label  'slave2'}
+                        steps {
                         echo "this is linux testing"
                     }
                     }
 
                     stage("mac testing") {
+                        agent {label  'master'}
                         steps {
                         echo "this is mac testing"
                         }
                     }
                 }
             }
-            stage("Deploy") {
+            stage("staging") {
+                agent {label  'master'}
                 steps {
-                    echo "Deploying..."
-                    sh '''
-                    pwd
-                    exit 1
-                    '''
+                    script{
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                            sh '''
+                            echo "this is running"
+                            exit 1
+                            '''
+                        }
+                    }
+
+                }
+            }
+            stage("production") {
+                steps {
+                    echo "this is production stage"
                 }
             }
         }
