@@ -1,25 +1,27 @@
 pipeline {
         agent any
-        stages ('parallel testing') {
-            parallel {
-               stage('windows testing') {
-                steps{
+        stages {
+            stage('parallel testing') {
+              parallel {
+                stage('windows testing') {
+                 steps{
                     echo " this is windows testing"
                     }
                 }
-               stage('linux testing') {
-                steps{
+                stage('linux testing') {
+                 steps{
                     echo " this is linux testing"
                     }
                 }
-                
-               stage('mac testing') {
-                steps{
+
+                stage('mac testing') {
+                 steps{
                     echo " this is mac testing"
                     }
                 }
             }
         }
+    }
 }
 
 
