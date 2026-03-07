@@ -5,20 +5,22 @@ pipeline {
                stage('windows testing') {
                 steps{
                     echo " this is windows testing"
+                    }
+                }
+               stage('linux testing') {
+                steps{
+                    echo " this is linux testing"
+                    }
+                }
+                
+               stage('mac testing') {
+                steps{
+                    echo " this is mac testing"
+                    }
                 }
             }
-                stage('linux testing') {
-                 steps{
-                      echo " this is linux testing"
-                 }
-            }   
-                stage('mac testing') {
-                 steps{
-                      echo " this is mac testing"
-                 }
-            }
-       }
-   }
+        }
 }
 
 
+  
