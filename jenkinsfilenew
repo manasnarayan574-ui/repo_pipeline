@@ -1,29 +1,24 @@
-pipeline{
-    agent none
-    parameters{
-        string(name: 'Name', defaultValue: '', description: 'Enter your name')
-        choice(name: 'Environment', choices: ['Dev', 'QA', 'Prod'], description: 'Select environment')
-        booleanParam(name: 'skip_test', defaultValue: false, description: 'Deploy to production?')
+pipeline {
+        agent any
+        stages ('parallel testing') {
+            parallel {
+               stage('windows testing') {
+                steps{
+                    echo " this is windows testing"
+                }
+            }
+                stage('linux testing') {
+                 steps{
+                      echo " this is linux testing"
+                 }
+            }   
+                stage('mac testing') {
+                 steps{
+                      echo " this is mac testing"
+                 }
+            }
        }
-        stages{
-            stage('Build'){
-                agent {label 'slave1'}
-                steps{
-                    echo "Name: ${params.Name}"
-                    echo "Environment: ${params.Environment}"
-                    echo "Skip Test: ${params.skip_test}"
-                }
-            }
-            stage('Test'){
-                agent {label 'slave1'}
-                steps{
-                    echo 'Testing...'
-                }
-            }
-            stage('Deploy'){
-                steps{
-                    echo 'Deploying...'
-                }
-            }
-        }
+   }
 }
+
+
