@@ -39,9 +39,6 @@ pipeline {
             }
             stage('production') {
                 agent { label  'slave1' }
-                when {
-                    branch 'main'
-                }
                 steps {
                     echo 'this is production stage'
                 }
