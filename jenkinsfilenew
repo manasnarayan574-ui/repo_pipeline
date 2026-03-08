@@ -17,7 +17,7 @@ pipeline {
                     }
 
                     stage("mac testing") {
-                        agent {label  'master'}
+                        agent {label  'slave2'}
                         steps {
                         echo "this is mac testing"
                         }
@@ -39,6 +39,9 @@ pipeline {
                 }
             }
             stage("production") {
+                when {
+                    branch 'main'
+                }
                 steps {
                     echo "this is production stage"
                 }
