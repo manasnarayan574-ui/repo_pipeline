@@ -1,33 +1,33 @@
 pipeline {
         agent none
         stages {
-            stage("parallel testing") {
+            stage('parallel testing') {
                 parallel {
-                    stage("windows testing") {
-                        agent {label  'slave1'}
+                    stage('windows testing') {
+                        agent { label  'slave1' }
                         steps {
-                        echo "this is windows testing"
+                        echo 'this is windows testing'
+                        }
                     }
-                    }
-                    stage("linux testing") {
-                        agent {label  'slave2'}
+                    stage('linux testing') {
+                        agent { label  'slave2' }
                         steps {
-                        echo "this is linux testing"
-                    }
+                        echo 'this is linux testing'
+                        }
                     }
 
-                    stage("mac testing") {
-                        agent {label  'slave2'}
+                    stage('mac testing') {
+                        agent { label  'slave2' }
                         steps {
-                        echo "this is mac testing"
+                        echo 'this is mac testing'
                         }
                     }
                 }
             }
-            stage("staging") {
-                agent {label  'master'}
+            stage('staging') {
+                agent { label  'master' }
                 steps {
-                    script{
+                    script {
                         catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                             sh '''
                             echo "this is running"
@@ -35,15 +35,15 @@ pipeline {
                             '''
                         }
                     }
-
                 }
             }
-            stage("production") {
+            stage('production') {
+                agent { label  'slave1' }
                 when {
                     branch 'main'
                 }
                 steps {
-                    echo "this is production stage"
+                    echo 'this is production stage'
                 }
             }
         }
