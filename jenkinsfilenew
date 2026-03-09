@@ -1,9 +1,9 @@
 pipeline {
     agent none
 
-    properties([
+    options {
         buildDiscarder(logRotator(numToKeepStr: '2'))
-    ])
+    }
 
     parameters {
         string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch name to build')
