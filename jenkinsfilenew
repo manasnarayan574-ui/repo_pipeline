@@ -13,8 +13,8 @@ pipeline {
     environment {
         APP_NAME = 'myapp'
         DOCKER_IMAGE = 'myimage:latest'
-        // Generates a timestamp since it's not a default Jenkins env variable
-        BUILD_TIMESTAMP = "${sh(script: 'date +%Y-%m-%d_%H-%M-%S', returnStdout: true).trim()}"
+        // FIX: Use Groovy logic instead of 'sh' so it doesn't require an agent/node
+        TIMESTAMP = "${new Date().format('yyyyMMdd-HHmmss')}"
     }
 
     stages {
@@ -25,8 +25,7 @@ pipeline {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                             retry(3) {
-                                echo 'Running Windows tests...'
-                                echo "Branch: ${params.BRANCH_NAME}"
+                                echo "Running Windows tests on Branch: ${params.BRANCH_NAME}"
                             }
                         }
                     }
@@ -36,8 +35,7 @@ pipeline {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                             retry(3) {
-                                echo 'Running Linux tests...'
-                                echo "Branch: ${params.BRANCH_NAME}"
+                                echo "Running Linux tests on Branch: ${params.BRANCH_NAME}"
                             }
                         }
                     }
@@ -47,8 +45,7 @@ pipeline {
                     steps {
                         catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
                             retry(3) {
-                                echo 'Running Mac tests...'
-                                echo "Branch: ${params.BRANCH_NAME}"
+                                echo "Running Mac tests on Branch: ${params.BRANCH_NAME}"
                             }
                         }
                     }
@@ -59,13 +56,10 @@ pipeline {
         stage('Staging') {
             agent { label 'master' }
             steps {
-                // Using script block for logic like 'exit 1'
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        sh '''
-                        echo "Simulating a staging failure..."
-                        exit 1
-                        '''
+                        // This will fail as requested, but allow the pipeline to continue
+                        sh 'exit 1'
                     }
                 }
                 echo "Environment: ${params.ENVIRONMENT}"
@@ -75,26 +69,20 @@ pipeline {
         stage('Production') {
             agent { label 'slave1' }
             steps {
-                echo 'Starting Production stage...'
-                echo "App: ${env.APP_NAME}, Image: ${env.DOCKER_IMAGE}"
+                echo "Deploying ${env.APP_NAME} version ${env.TIMESTAMP} to Production"
             }
         }
     }
 
     post {
         success {
-            echo '✓ Pipeline completed successfully!'
-            echo "Branch: ${params.BRANCH_NAME} | Environment: ${params.ENVIRONMENT}"
+            echo "✓ Completed successfully at ${env.TIMESTAMP}"
         }
         failure {
-            echo '✗ Pipeline failed!'
-            echo "App: ${env.APP_NAME} | Image: ${env.DOCKER_IMAGE}"
-        }
-        unstable {
-            echo '⚠ Pipeline completed with warnings (unstable)'
+            echo "✗ Pipeline failed!"
         }
         always {
-            echo "Pipeline execution finished at: ${env.BUILD_TIMESTAMP}"
+            echo "Execution finished. Build ID: ${env.BUILD_ID}"
         }
     }
 }
