@@ -17,28 +17,31 @@ pipeline {
             stage('parallel testing') {
                 steps {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        retry(3) {
-                            parallel {
-                                stage('windows testing') {
-                                    agent { label  'slave1' }
-                                    steps {
-                                    echo 'this is windows testing'
-                                    echo "Branch: ${params.BRANCH_NAME}"
+                        parallel {
+                            stage('windows testing') {
+                                agent { label  'slave1' }
+                                steps {
+                                    retry(3) {
+                                        echo 'this is windows testing'
+                                        echo "Branch: ${params.BRANCH_NAME}"
                                     }
                                 }
-                                stage('linux testing') {
-                                    agent { label  'slave2' }
-                                    steps {
-                                    echo 'this is linux testing'
-                                    echo "Branch: ${params.BRANCH_NAME}"
+                            }
+                            stage('linux testing') {
+                                agent { label  'slave2' }
+                                steps {
+                                    retry(3) {
+                                        echo 'this is linux testing'
+                                        echo "Branch: ${params.BRANCH_NAME}"
                                     }
                                 }
-
-                                stage('mac testing') {
-                                    agent { label  'slave2' }
-                                    steps {
-                                    echo 'this is mac testing'
-                                    echo "Branch: ${params.BRANCH_NAME}"
+                            }
+                            stage('mac testing') {
+                                agent { label  'slave2' }
+                                steps {
+                                    retry(3) {
+                                        echo 'this is mac testing'
+                                        echo "Branch: ${params.BRANCH_NAME}"
                                     }
                                 }
                             }
@@ -63,10 +66,8 @@ pipeline {
             stage('production') {
                 agent { label  'slave1' }
                 steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                        echo 'this is production stage'
-                        echo "App: ${env.APP_NAME}, Image: ${env.DOCKER_IMAGE}"
-                    }
+                    echo 'this is production stage'
+                    echo "App: ${env.APP_NAME}, Image: ${env.DOCKER_IMAGE}"
                 }
             }
         }
