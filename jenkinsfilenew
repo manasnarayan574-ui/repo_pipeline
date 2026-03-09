@@ -1,4 +1,5 @@
 pipeline {
+    agent none
 
     properties([
         buildDiscarder(logRotator(numToKeepStr: '2'))
@@ -8,80 +9,89 @@ pipeline {
         string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch name to build')
         choice(name: 'ENVIRONMENT', choices: ['dev', 'stage', 'prod'], description: 'Target environment')
     }
+
     environment {
         APP_NAME = 'myapp'
         DOCKER_IMAGE = 'myimage:latest'
+        // Generates a timestamp since it's not a default Jenkins env variable
+        BUILD_TIMESTAMP = "${sh(script: 'date +%Y-%m-%d_%H-%M-%S', returnStdout: true).trim()}"
     }
-        agent none
-        stages {
-            stage('parallel testing') {
-                steps {
-                    catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        parallel {
-                            stage('windows testing') {
-                                agent { label  'slave1' }
-                                steps {
-                                    retry(3) {
-                                        echo 'this is windows testing'
-                                        echo "Branch: ${params.BRANCH_NAME}"
-                                    }
-                                }
-                            }
-                            stage('linux testing') {
-                                agent { label  'slave2' }
-                                steps {
-                                    retry(3) {
-                                        echo 'this is linux testing'
-                                        echo "Branch: ${params.BRANCH_NAME}"
-                                    }
-                                }
-                            }
-                            stage('mac testing') {
-                                agent { label  'slave2' }
-                                steps {
-                                    retry(3) {
-                                        echo 'this is mac testing'
-                                        echo "Branch: ${params.BRANCH_NAME}"
-                                    }
-                                }
+
+    stages {
+        stage('Parallel Testing') {
+            parallel {
+                stage('Windows Testing') {
+                    agent { label 'slave1' }
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                            retry(3) {
+                                echo 'Running Windows tests...'
+                                echo "Branch: ${params.BRANCH_NAME}"
                             }
                         }
                     }
                 }
-            }
-            stage('staging') {
-                agent { label  'master' }
-                steps {
-                    script {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh '''
-                            echo "this is running"
-                            exit 1
-                            '''
+                stage('Linux Testing') {
+                    agent { label 'slave2' }
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                            retry(3) {
+                                echo 'Running Linux tests...'
+                                echo "Branch: ${params.BRANCH_NAME}"
+                            }
                         }
                     }
-                    echo "Environment: ${params.ENVIRONMENT}"
                 }
-            }
-            stage('production') {
-                agent { label  'slave1' }
-                steps {
-                    echo 'this is production stage'
-                    echo "App: ${env.APP_NAME}, Image: ${env.DOCKER_IMAGE}"
+                stage('Mac Testing') {
+                    agent { label 'slave2' }
+                    steps {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                            retry(3) {
+                                echo 'Running Mac tests...'
+                                echo "Branch: ${params.BRANCH_NAME}"
+                            }
+                        }
+                    }
                 }
             }
         }
+
+        stage('Staging') {
+            agent { label 'master' }
+            steps {
+                // Using script block for logic like 'exit 1'
+                script {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh '''
+                        echo "Simulating a staging failure..."
+                        exit 1
+                        '''
+                    }
+                }
+                echo "Environment: ${params.ENVIRONMENT}"
+            }
+        }
+
+        stage('Production') {
+            agent { label 'slave1' }
+            steps {
+                echo 'Starting Production stage...'
+                echo "App: ${env.APP_NAME}, Image: ${env.DOCKER_IMAGE}"
+            }
+        }
+    }
+
     post {
         success {
-            echo "✓ Pipeline completed successfully!"
+            echo '✓ Pipeline completed successfully!'
             echo "Branch: ${params.BRANCH_NAME} | Environment: ${params.ENVIRONMENT}"
         }
         failure {
-            echo "✗ Pipeline failed!"
+            echo '✗ Pipeline failed!'
             echo "App: ${env.APP_NAME} | Image: ${env.DOCKER_IMAGE}"
         }
         unstable {
-            echo "⚠ Pipeline completed with warnings"
+            echo '⚠ Pipeline completed with warnings (unstable)'
         }
         always {
             echo "Pipeline execution finished at: ${env.BUILD_TIMESTAMP}"
